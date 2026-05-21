@@ -121,6 +121,7 @@ document.addEventListener("DOMContentLoaded", function () {
   async function loadCdramas() {
     const container = document.getElementById("cdrama-container");
     if (!container) return;
+    showSkeletons(container, 3);
     try {
       const response = await fetch("dramas.json");
       const data = await response.json();
@@ -129,9 +130,7 @@ document.addEventListener("DOMContentLoaded", function () {
         const card = document.createElement("div");
         card.className = "main-recommendation";
         card.innerHTML = `
-                    <img src="${getDramaImage(drama)}" alt="${
-          drama.title
-        }" class="main-img">
+                    <img src="${getDramaImage(drama)}" alt="${drama.title}" class="main-img" loading="lazy" width="280" height="400">
                     <div class="main-text">
                         <h2 class="main-title">${drama.title}</h2>
                         <p>${drama.description}</p>
@@ -151,6 +150,7 @@ document.addEventListener("DOMContentLoaded", function () {
   async function loadKdramas() {
     const container = document.getElementById("kdrama-container");
     if (!container) return;
+    showSkeletons(container, 3);
     try {
       const response = await fetch("dramas.json");
       const data = await response.json();
@@ -159,9 +159,7 @@ document.addEventListener("DOMContentLoaded", function () {
         const card = document.createElement("div");
         card.className = "main-recommendation";
         card.innerHTML = `
-                    <img src="${getDramaImage(drama)}" alt="${
-          drama.title
-        }" class="main-img">
+                    <img src="${getDramaImage(drama)}" alt="${drama.title}" class="main-img" loading="lazy" width="280" height="400">
                     <div class="main-text">
                         <h2 class="main-title">${drama.title}</h2>
                         <p>${drama.description}</p>
@@ -175,6 +173,26 @@ document.addEventListener("DOMContentLoaded", function () {
       });
     } catch (err) {
       container.innerHTML = "<p>Failed to load recommendations.</p>";
+    }
+  }
+
+  // Render skeleton placeholder cards synchronously so layout is stable
+  function showSkeletons(container, count) {
+    container.innerHTML = "";
+    for (let i = 0; i < count; i++) {
+      const skel = document.createElement("div");
+      skel.className = "skeleton-card";
+      skel.innerHTML = `
+        <div class="skeleton-img"></div>
+        <div class="skeleton-text">
+          <div class="skeleton-line title"></div>
+          <div class="skeleton-line"></div>
+          <div class="skeleton-line small"></div>
+          <div class="skeleton-line"></div>
+          <div class="skeleton-line small"></div>
+        </div>
+      `;
+      container.appendChild(skel);
     }
   }
 
@@ -248,7 +266,7 @@ document.addEventListener("DOMContentLoaded", function () {
     function (e) {
       touchStartX = e.changedTouches[0].screenX;
     },
-    false
+    false,
   );
   document.addEventListener(
     "touchend",
@@ -256,6 +274,6 @@ document.addEventListener("DOMContentLoaded", function () {
       touchEndX = e.changedTouches[0].screenX;
       handleGesture();
     },
-    false
+    false,
   );
 });
