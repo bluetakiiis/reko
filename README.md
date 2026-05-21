@@ -1,4 +1,4 @@
-# Rupika's Kdrama Reko
+# Reko
 
 **Project Overview**
 
