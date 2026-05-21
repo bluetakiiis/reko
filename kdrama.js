@@ -243,37 +243,4 @@ document.addEventListener("DOMContentLoaded", function () {
     }
     loadSidebarLists();
   });
-
-  let touchStartX = 0;
-  let touchEndX = 0;
-
-  function handleGesture() {
-    if (window.innerWidth > 768) return;
-    if (touchEndX < touchStartX - 50) {
-      if (!isCdramaMode) {
-        themeToggle.click();
-      }
-    }
-    if (touchEndX > touchStartX + 50) {
-      if (isCdramaMode) {
-        themeToggle.click();
-      }
-    }
-  }
-
-  document.addEventListener(
-    "touchstart",
-    function (e) {
-      touchStartX = e.changedTouches[0].screenX;
-    },
-    false,
-  );
-  document.addEventListener(
-    "touchend",
-    function (e) {
-      touchEndX = e.changedTouches[0].screenX;
-      handleGesture();
-    },
-    false,
-  );
 });
