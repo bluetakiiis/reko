@@ -725,17 +725,19 @@ button[type="submit"]:hover {
   }
 }
 
-/* Move genre-row responsive rules to top-level media query */
 @media (max-width: 576px) {
   .genre-row {
     flex-wrap: wrap;
     gap: 0.5rem;
-    align-items: center;
+    align-items: flex-start;
+    width: 100%;
   }
   .genre-label {
-    width: 100%;
+    display: none;
   }
   .genre-pills {
     width: 100%;
+    flex-wrap: wrap;
+    min-width: 0;
   }
 }

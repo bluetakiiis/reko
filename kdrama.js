@@ -338,9 +338,7 @@ document.addEventListener("DOMContentLoaded", function () {
           cdramaList.appendChild(li);
         });
       }
-    } catch (error) {
-      // Keep the sidebar empty if the data cannot be loaded.
-    }
+    } catch (error) {}
   }
 
   function handleResize() {
