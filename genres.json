@@ -1,0 +1,125 @@
+{
+  "action": {
+    "bg": "linear-gradient(315deg, rgba(255, 227, 227, 0.92) 0%, rgb(255 89 89 / 78%) 100%)",
+    "text": "#ff0000"
+  },
+  "business": {
+    "bg": "linear-gradient(315deg, rgb(123 149 198 / 92%) 0%, rgb(232 239 252 / 78%) 100%)",
+    "text": "#281f73"
+  },
+  "comedy": {
+    "bg": "linear-gradient(315deg, rgba(255, 248, 217, 0.92) 0%, rgba(255, 232, 153, 0.78) 100%)",
+    "text": "#D39B00"
+  },
+  "coming-of-age": {
+    "bg": "linear-gradient(315deg, rgba(255, 233, 214, 0.92) 0%, rgb(206 128 76 / 78%) 100%)",
+    "text": "#ff6d03"
+  },
+  "crime": {
+    "bg": "linear-gradient(315deg, rgba(232, 236, 240, 0.92) 0%, rgba(177, 186, 196, 0.78) 100%)",
+    "text": "#4F5966"
+  },
+  "drama": {
+    "bg": "linear-gradient(315deg, rgba(255, 228, 238, 0.92) 0%, rgba(231, 189, 210, 0.78) 100%)",
+    "text": "#B55C84"
+  },
+  "family": {
+    "bg": "linear-gradient(315deg, rgb(249 255 100 / 92%) 0%, rgba(205, 233, 168, 0.78) 100%)",
+    "text": "#bfb512"
+  },
+  "fantasy": {
+    "bg": "linear-gradient(315deg, rgba(240, 231, 255, 0.92) 0%, rgba(216, 193, 255, 0.78) 100%)",
+    "text": "#8B4FD9"
+  },
+  "historical": {
+    "bg": "linear-gradient(315deg, rgba(252, 239, 218, 0.92) 0%, rgba(227, 193, 146, 0.78) 100%)",
+    "text": "#A56A2A"
+  },
+  "horror": {
+    "bg": "linear-gradient(315deg, rgb(113 0 38 / 92%) 0%, rgba(205, 128, 153, 0.78) 100%)"
+  },
+  "life": {
+    "bg": "linear-gradient(315deg, rgb(248 223 223 / 92%) 0%, rgb(167 219 242 / 78%) 100%)",
+    "text": "#56c4ff"
+  },
+  "medical": {
+    "bg": "linear-gradient(315deg, rgba(221, 252, 240, 0.92) 0%, rgba(164, 236, 204, 0.78) 100%)",
+    "text": "#1F9E6D"
+  },
+  "melodrama": {
+    "bg": "linear-gradient(315deg, rgb(153 98 58 / 92%) 0%, rgb(239 216 228 / 78%) 100%)",
+    "text": "#fffbed"
+  },
+  "music": {
+    "bg": "linear-gradient(315deg, rgba(241, 228, 255, 0.92) 0%, rgba(201, 163, 255, 0.78) 100%)",
+    "text": "#8E45E8"
+  },
+  "mystery": {
+    "bg": "linear-gradient(315deg, rgb(255 255 255 / 92%) 0%, rgb(0 0 0 / 78%) 100%)",
+    "text": "#e5e5e5"
+  },
+  "psychological": {
+    "bg": "linear-gradient(315deg, rgb(133 133 145 / 92%) 0%, rgb(228 236 237 / 78%) 100%)",
+    "text": "#5C63C7"
+  },
+  "romance": {
+    "bg": "linear-gradient(315deg, rgba(255, 235, 243, 0.92) 0%, rgba(255, 194, 221, 0.78) 100%)",
+    "text": "#FF5D9F"
+  },
+  "sci-fi": {
+    "bg": "linear-gradient(315deg, rgba(218, 255, 252, 0.92) 0%, rgba(142, 243, 233, 0.78) 100%)",
+    "text": "#00A7A0"
+  },
+  "sports": {
+    "bg": "linear-gradient(315deg, rgba(229, 255, 214, 0.92) 0%, rgba(177, 232, 154, 0.78) 100%)",
+    "text": "#4C9A28"
+  },
+  "supernatural": {
+    "bg": "linear-gradient(315deg, rgba(233, 226, 255, 0.92) 0%, rgba(188, 170, 242, 0.78) 100%)",
+    "text": "#6D4BCF"
+  },
+  "thriller": {
+    "bg": "linear-gradient(315deg, rgba(255, 224, 230, 0.92) 0%, rgba(210, 122, 142, 0.78) 100%)",
+    "text": "#9E2F4D"
+  },
+  "war": {
+    "bg": "linear-gradient(315deg, rgba(236, 240, 220, 0.92) 0%, rgba(181, 193, 138, 0.78) 100%)",
+    "text": "#687B33"
+  },
+  "wuxia": {
+    "bg": "linear-gradient(315deg, rgba(255, 240, 209, 0.92) 0%, rgba(240, 197, 114, 0.78) 100%)",
+    "text": "#B77700"
+  },
+  "xianxia": {
+    "bg": "linear-gradient(315deg, rgba(255, 238, 246, 0.92) 0%, rgba(236, 205, 232, 0.78) 100%)",
+    "text": "#9A4A86"
+  },
+  "youth": {
+    "bg": "linear-gradient(315deg, rgba(225, 243, 255, 0.92) 0%, rgba(173, 214, 255, 0.78) 100%)",
+    "text": "#3B8EDB"
+  },
+  "apocalyptic": {
+    "bg": "linear-gradient(315deg, rgb(66 18 18 / 92%) 0%, rgb(200 177 177 / 35%) 100%)",
+    "text": "#370404"
+  },
+  "time-travel": {
+    "bg": "linear-gradient(315deg, rgb(172 111 111 / 92%) 0%, rgb(235 222 222 / 78%) 100%)",
+    "text": "#6b4a4a"
+  },
+  "virtual-reality": {
+    "bg": "linear-gradient(315deg, rgb(96 160 192 / 92%) 0%, rgb(186 211 223 / 78%) 100%)",
+    "text": "#9cf0ff"
+  },
+  "e-sports": {
+    "bg": "linear-gradient(315deg, rgba(236, 255, 231, 0.92) 0%, rgb(192 112 229 / 78%) 100%)",
+    "text": "#8b22a8"
+  },
+  "slice-of-life": {
+    "bg": "linear-gradient(315deg, rgba(255, 250, 240, 0.92) 0%, rgb(193 230 94 / 78%) 100%)",
+    "text": "#85e264"
+  },
+  "default": {
+    "bg": "linear-gradient(315deg, rgba(245, 240, 252, 0.92) 0%, rgba(217, 204, 237, 0.78) 100%)",
+    "text": "#7E67A8"
+  }
+}

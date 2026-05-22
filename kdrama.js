@@ -6,50 +6,354 @@ document.addEventListener("DOMContentLoaded", function () {
   const navbarTitle = document.querySelector(".navbar-title");
   const form = document.getElementById("recommend-form");
   const status = document.getElementById("form-status");
+  const kdramaContainer = document.getElementById("kdrama-container");
+  const cdramaContainer = document.getElementById("cdrama-container");
+
+  const genreFilters = {
+    kdrama: null,
+    cdrama: null,
+  };
 
   const savedTheme = localStorage.getItem("dramaTheme");
   let isCdramaMode = savedTheme === "cdrama";
+  let dramasData = null;
+  let dramasDataPromise = null;
+  let genrePaletteData = null;
+  let genrePalettePromise = null;
 
-  if (isCdramaMode) {
-    document.body.classList.add("cdrama-theme");
-    themeToggle.textContent = "toggle_on";
-    navbarTitle.textContent = "Rupika's Cdrama Reko";
-    document.getElementById("kdrama-list").style.display = "none";
-    document.getElementById("cdrama-list").style.display = "block";
-    document.getElementById("kdrama-rec").style.display = "none";
-    document.getElementById("cdrama-rec").style.display = "block";
-    loadCdramas();
+  function getCurrentMode() {
+    return isCdramaMode ? "cdrama" : "kdrama";
+  }
+
+  function clearStatus() {
+    if (!status) {
+      return;
+    }
+
+    status.textContent = "";
+    status.className = "form-status";
+  }
+
+  function applyThemeUi() {
+    document.body.classList.toggle("cdrama-theme", isCdramaMode);
+    themeToggle.textContent = isCdramaMode ? "toggle_on" : "toggle_off";
+    navbarTitle.textContent = isCdramaMode
+      ? "Rupika's Cdrama Recs"
+      : "Rupika's Kdrama Recs";
+
+    document.getElementById("kdrama-list").style.display = isCdramaMode
+      ? "none"
+      : "block";
+    document.getElementById("cdrama-list").style.display = isCdramaMode
+      ? "block"
+      : "none";
+    document.getElementById("kdrama-rec").style.display = isCdramaMode
+      ? "none"
+      : "block";
+    document.getElementById("cdrama-rec").style.display = isCdramaMode
+      ? "block"
+      : "none";
+  }
+
+  function getDramaImage(drama) {
+    if (window.innerWidth <= 576 && drama.imageMobile) {
+      return drama.imageMobile;
+    }
+
+    return drama.image;
+  }
+
+  function getGenreTokens(genreValue) {
+    return String(genreValue || "")
+      .split("/")
+      .flatMap((part) => part.split(/\s{2,}/))
+      .map((part) => part.replace(/\s+/g, " ").trim())
+      .filter(Boolean);
+  }
+
+  function getGenreSlug(genre) {
+    return genre
+      .toLowerCase()
+      .replace(/&/g, "and")
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "");
+  }
+
+  async function getGenrePaletteData() {
+    if (genrePaletteData) {
+      return genrePaletteData;
+    }
+
+    if (!genrePalettePromise) {
+      genrePalettePromise = fetch("genres.json")
+        .then((response) => response.json())
+        .then((data) => {
+          genrePaletteData = data;
+          return data;
+        })
+        .catch((error) => {
+          genrePalettePromise = null;
+          throw error;
+        });
+    }
+
+    return genrePalettePromise;
+  }
+
+  function escapeHtml(value) {
+    return String(value)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#39;");
+  }
+
+  function parseRating(rating) {
+    const ratingValue = parseFloat(String(rating).split("/")[0]);
+    return Number.isFinite(ratingValue) ? ratingValue : 0;
+  }
+
+  function sortByRating(items) {
+    return [...items].sort((left, right) => {
+      const ratingDifference =
+        parseRating(right.rating) - parseRating(left.rating);
+      if (ratingDifference !== 0) {
+        return ratingDifference;
+      }
+
+      return String(left.title).localeCompare(String(right.title));
+    });
+  }
+
+  function matchesGenre(drama, activeGenre) {
+    if (!activeGenre) {
+      return true;
+    }
+
+    return getGenreTokens(drama.genre).some(
+      (genre) => genre.toLowerCase() === activeGenre.toLowerCase(),
+    );
+  }
+
+  async function getDramasData() {
+    if (dramasData) {
+      return dramasData;
+    }
+
+    if (!dramasDataPromise) {
+      dramasDataPromise = fetch("dramas.json")
+        .then((response) => response.json())
+        .then((data) => {
+          dramasData = data;
+          return data;
+        })
+        .catch((error) => {
+          dramasDataPromise = null;
+          throw error;
+        });
+    }
+
+    return dramasDataPromise;
+  }
+
+  function showSkeletons(container, count) {
+    container.innerHTML = "";
+
+    for (let index = 0; index < count; index += 1) {
+      const skel = document.createElement("div");
+      skel.className = "skeleton-card";
+      skel.innerHTML = `
+        <div class="skeleton-img"></div>
+        <div class="skeleton-text">
+          <div class="skeleton-line title"></div>
+          <div class="skeleton-line"></div>
+          <div class="skeleton-line small"></div>
+          <div class="skeleton-line"></div>
+          <div class="skeleton-line small"></div>
+        </div>
+      `;
+      container.appendChild(skel);
+    }
+  }
+
+  function createGenrePill(genre, activeGenre, mode) {
+    const isActive =
+      activeGenre && genre.toLowerCase() === activeGenre.toLowerCase();
+    const slug = getGenreSlug(genre);
+    const palette = (genrePaletteData && genrePaletteData[slug]) ||
+      (genrePaletteData && genrePaletteData.default) || {
+        bg: "#EFE7F6",
+        text: "#5B4A6D",
+      };
+
+    return `
+      <button
+        type="button"
+        class="genre-pill${isActive ? " is-active" : ""}"
+        style="--pill-bg: ${palette.bg}; --pill-text: ${palette.text};"
+        data-genre="${escapeHtml(genre)}"
+        data-mode="${mode}"
+        aria-pressed="${isActive ? "true" : "false"}"
+      >
+        ${escapeHtml(genre)}
+      </button>
+    `;
+  }
+
+  function createDramaCard(drama, mode) {
+    const card = document.createElement("div");
+    const activeGenre = genreFilters[mode];
+    const genres = getGenreTokens(drama.genre);
+
+    card.className = "main-recommendation";
+    card.innerHTML = `
+      <img src="${getDramaImage(drama)}" alt="${escapeHtml(drama.title)}" class="main-img" loading="lazy" width="280" height="400">
+      <div class="main-text">
+        <h2 class="main-title">${escapeHtml(drama.title)}</h2>
+        <p>${escapeHtml(drama.description)}</p>
+        <div class="genre-row">
+          <div class="genre-label">Genre:</div>
+          <div class="genre-pills" aria-label="Genres">
+            ${genres.map((genre) => createGenrePill(genre, activeGenre, mode)).join("")}
+          </div>
+        </div>
+        <p><strong>Episodes:</strong> ${escapeHtml(drama.episodes)}</p>
+        <p><strong>Rating:</strong> ${escapeHtml(drama.rating)}</p>
+        <a href="${escapeHtml(drama.link)}">Watch Now</a>
+      </div>
+    `;
+
+    return card;
+  }
+
+  function attachGenreFilterHandler(container) {
+    if (!container || container.dataset.genreFilterBound === "true") {
+      return;
+    }
+
+    container.dataset.genreFilterBound = "true";
+
+    container.addEventListener("click", function (event) {
+      const pill = event.target.closest(".genre-pill");
+      if (!pill) {
+        return;
+      }
+
+      event.preventDefault();
+
+      const mode = pill.dataset.mode;
+      const genre = pill.dataset.genre;
+      const selectedGenre = genreFilters[mode];
+
+      genreFilters[mode] =
+        selectedGenre && selectedGenre.toLowerCase() === genre.toLowerCase()
+          ? null
+          : genre;
+
+      void renderMode(mode, { showSkeletons: false });
+    });
+  }
+
+  async function renderMode(mode, options = {}) {
+    const container = document.getElementById(
+      mode === "cdrama" ? "cdrama-container" : "kdrama-container",
+    );
+
+    if (!container) {
+      return;
+    }
+
+    if (!dramasData && options.showSkeletons !== false) {
+      showSkeletons(container, 3);
+    }
+
+    try {
+      const [data] = await Promise.all([
+        getDramasData(),
+        getGenrePaletteData(),
+      ]);
+      const activeGenre = genreFilters[mode];
+
+      let items = [...(data[`${mode}Recommendations`] || [])];
+
+      if (activeGenre) {
+        items = sortByRating(items);
+      } else {
+        items.sort((left, right) =>
+          String(left.title).localeCompare(String(right.title)),
+        );
+      }
+
+      const filteredItems = items.filter((drama) =>
+        matchesGenre(drama, activeGenre),
+      );
+
+      container.innerHTML = "";
+
+      if (!filteredItems.length) {
+        const emptyState = document.createElement("p");
+        emptyState.className = "no-results";
+        emptyState.textContent = activeGenre
+          ? `No ${activeGenre} dramas found in this section.`
+          : "No dramas found.";
+        container.appendChild(emptyState);
+        return;
+      }
+
+      filteredItems.forEach((drama) => {
+        container.appendChild(createDramaCard(drama, mode));
+      });
+
+      attachGenreFilterHandler(container);
+    } catch (error) {
+      container.innerHTML = "<p>Failed to load recommendations.</p>";
+    }
+  }
+
+  function renderCurrentMode(options = {}) {
+    return renderMode(getCurrentMode(), options);
+  }
+
+  async function loadSidebarLists() {
+    try {
+      const data = await getDramasData();
+      const kdramaList = document.getElementById("kdrama-list");
+      const cdramaList = document.getElementById("cdrama-list");
+
+      if (kdramaList) {
+        kdramaList.innerHTML = "";
+        data.kdramaSidebar.forEach((title) => {
+          const li = document.createElement("li");
+          li.textContent = title;
+          kdramaList.appendChild(li);
+        });
+      }
+
+      if (cdramaList) {
+        cdramaList.innerHTML = "";
+        data.cdramaSidebar.forEach((title) => {
+          const li = document.createElement("li");
+          li.textContent = title;
+          cdramaList.appendChild(li);
+        });
+      }
+    } catch (error) {
+      // Keep the sidebar empty if the data cannot be loaded.
+    }
+  }
+
+  function handleResize() {
+    if (window.innerWidth <= 576) {
+      mainContent.classList.remove("sidebar-open");
+    }
+
+    void renderCurrentMode({ showSkeletons: !dramasData });
   }
 
   menuBtn.addEventListener("click", function () {
     sidebar.classList.toggle("show");
     mainContent.classList.toggle("sidebar-open");
-    clearStatus();
-  });
-
-  themeToggle.addEventListener("click", function () {
-    isCdramaMode = !isCdramaMode;
-
-    if (isCdramaMode) {
-      document.body.classList.add("cdrama-theme");
-      themeToggle.textContent = "toggle_on";
-      navbarTitle.textContent = "Rupika's Cdrama Recs";
-      document.getElementById("kdrama-list").style.display = "none";
-      document.getElementById("cdrama-list").style.display = "block";
-      document.getElementById("kdrama-rec").style.display = "none";
-      document.getElementById("cdrama-rec").style.display = "block";
-      loadCdramas();
-    } else {
-      document.body.classList.remove("cdrama-theme");
-      themeToggle.textContent = "toggle_off";
-      navbarTitle.textContent = "Rupika's Kdrama Recs";
-      document.getElementById("kdrama-list").style.display = "block";
-      document.getElementById("cdrama-list").style.display = "none";
-      document.getElementById("kdrama-rec").style.display = "block";
-      document.getElementById("cdrama-rec").style.display = "none";
-    }
-
-    localStorage.setItem("dramaTheme", isCdramaMode ? "cdrama" : "kdrama");
     clearStatus();
   });
 
@@ -65,21 +369,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   });
 
-  function handleResize() {
-    if (window.innerWidth <= 576) {
-      mainContent.classList.remove("sidebar-open");
-    }
-  }
-
-  function clearStatus() {
-    if (status) {
-      status.textContent = "";
-      status.className = "form-status";
-    }
-  }
-
   window.addEventListener("resize", handleResize);
-  handleResize();
 
   if (form) {
     form.addEventListener("submit", async function (e) {
@@ -111,136 +401,19 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 
-  function getDramaImage(drama) {
-    if (window.innerWidth <= 576 && drama.imageMobile) {
-      return drama.imageMobile;
-    }
-    return drama.image;
-  }
-
-  async function loadCdramas() {
-    const container = document.getElementById("cdrama-container");
-    if (!container) return;
-    showSkeletons(container, 3);
-    try {
-      const response = await fetch("dramas.json");
-      const data = await response.json();
-      container.innerHTML = "";
-      (data.cdramaRecommendations || []).forEach((drama) => {
-        const card = document.createElement("div");
-        card.className = "main-recommendation";
-        card.innerHTML = `
-                    <img src="${getDramaImage(drama)}" alt="${drama.title}" class="main-img" loading="lazy" width="280" height="400">
-                    <div class="main-text">
-                        <h2 class="main-title">${drama.title}</h2>
-                        <p>${drama.description}</p>
-                        <p><strong>Genre:</strong> ${drama.genre}</p>
-                        <p><strong>Episodes:</strong> ${drama.episodes}</p>
-                        <p><strong>Rating:</strong> ${drama.rating}</p>
-                        <a href="${drama.link}">Watch Now</a>
-                    </div>
-                `;
-        container.appendChild(card);
-      });
-    } catch (err) {
-      container.innerHTML = "<p>Failed to load recommendations.</p>";
-    }
-  }
-
-  async function loadKdramas() {
-    const container = document.getElementById("kdrama-container");
-    if (!container) return;
-    showSkeletons(container, 3);
-    try {
-      const response = await fetch("dramas.json");
-      const data = await response.json();
-      container.innerHTML = "";
-      data.kdramaRecommendations.forEach((drama) => {
-        const card = document.createElement("div");
-        card.className = "main-recommendation";
-        card.innerHTML = `
-                    <img src="${getDramaImage(drama)}" alt="${drama.title}" class="main-img" loading="lazy" width="280" height="400">
-                    <div class="main-text">
-                        <h2 class="main-title">${drama.title}</h2>
-                        <p>${drama.description}</p>
-                        <p><strong>Genre:</strong> ${drama.genre}</p>
-                        <p><strong>Episodes:</strong> ${drama.episodes}</p>
-                        <p><strong>Rating:</strong> ${drama.rating}</p>
-                        <a href="${drama.link}">Watch Now</a>
-                    </div>
-                `;
-        container.appendChild(card);
-      });
-    } catch (err) {
-      container.innerHTML = "<p>Failed to load recommendations.</p>";
-    }
-  }
-
-  // Render skeleton placeholder cards synchronously so layout is stable
-  function showSkeletons(container, count) {
-    container.innerHTML = "";
-    for (let i = 0; i < count; i++) {
-      const skel = document.createElement("div");
-      skel.className = "skeleton-card";
-      skel.innerHTML = `
-        <div class="skeleton-img"></div>
-        <div class="skeleton-text">
-          <div class="skeleton-line title"></div>
-          <div class="skeleton-line"></div>
-          <div class="skeleton-line small"></div>
-          <div class="skeleton-line"></div>
-          <div class="skeleton-line small"></div>
-        </div>
-      `;
-      container.appendChild(skel);
-    }
-  }
-
-  async function loadSidebarLists() {
-    try {
-      const response = await fetch("dramas.json");
-      const data = await response.json();
-      const kdramaList = document.getElementById("kdrama-list");
-      const cdramaList = document.getElementById("cdrama-list");
-      if (kdramaList) {
-        kdramaList.innerHTML = "";
-        data.kdramaSidebar.forEach((title) => {
-          const li = document.createElement("li");
-          li.textContent = title;
-          kdramaList.appendChild(li);
-        });
-      }
-      if (cdramaList) {
-        cdramaList.innerHTML = "";
-        data.cdramaSidebar.forEach((title) => {
-          const li = document.createElement("li");
-          li.textContent = title;
-          cdramaList.appendChild(li);
-        });
-      }
-    } catch (err) {}
-  }
-
-  loadKdramas();
-  loadSidebarLists();
-  if (isCdramaMode) {
-    loadCdramas();
-  }
-
-  window.addEventListener("resize", function () {
-    if (document.getElementById("kdrama-rec").style.display !== "none") {
-      loadKdramas();
-    } else {
-      loadCdramas();
-    }
-  });
-
   themeToggle.addEventListener("click", function () {
-    if (isCdramaMode) {
-      loadCdramas();
-    } else {
-      loadKdramas();
-    }
-    loadSidebarLists();
+    isCdramaMode = !isCdramaMode;
+    localStorage.setItem("dramaTheme", isCdramaMode ? "cdrama" : "kdrama");
+    applyThemeUi();
+    clearStatus();
+    void renderCurrentMode();
+    void loadSidebarLists();
   });
+
+  applyThemeUi();
+  attachGenreFilterHandler(kdramaContainer);
+  attachGenreFilterHandler(cdramaContainer);
+  void renderCurrentMode();
+  void loadSidebarLists();
+  handleResize();
 });
