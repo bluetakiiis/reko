@@ -36,6 +36,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
   function applyThemeUi() {
     document.body.classList.toggle("cdrama-theme", isCdramaMode);
+    document.documentElement.classList.toggle("cdrama-theme", isCdramaMode);
     themeToggle.textContent = isCdramaMode ? "toggle_on" : "toggle_off";
     navbarTitle.textContent = isCdramaMode
       ? "Rupika's Cdrama Recs"
