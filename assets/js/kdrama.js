@@ -20,6 +20,7 @@ document.addEventListener("DOMContentLoaded", function () {
   let dramasDataPromise = null;
   let genrePaletteData = null;
   let genrePalettePromise = null;
+  let modeSwitchTimer = null;
 
   function getCurrentMode() {
     return isCdramaMode ? "cdrama" : "kdrama";
@@ -41,7 +42,9 @@ document.addEventListener("DOMContentLoaded", function () {
     navbarTitle.textContent = isCdramaMode
       ? "Rupika's Cdrama Recs"
       : "Rupika's Kdrama Recs";
+  }
 
+  function syncModeSections() {
     document.getElementById("kdrama-list").style.display = isCdramaMode
       ? "none"
       : "block";
@@ -54,6 +57,53 @@ document.addEventListener("DOMContentLoaded", function () {
     document.getElementById("cdrama-rec").style.display = isCdramaMode
       ? "block"
       : "none";
+  }
+
+  function getModeSection(mode) {
+    return document.getElementById(
+      mode === "cdrama" ? "cdrama-rec" : "kdrama-rec",
+    );
+  }
+
+  function fadeModeSwitch() {
+    const outgoingMode = isCdramaMode ? "kdrama" : "cdrama";
+    const incomingMode = getCurrentMode();
+    const outgoingSection = getModeSection(outgoingMode);
+    const incomingSection = getModeSection(incomingMode);
+
+    applyThemeUi();
+
+    if (modeSwitchTimer) {
+      window.clearTimeout(modeSwitchTimer);
+    }
+
+    if (!outgoingSection || !incomingSection) {
+      syncModeSections();
+      void renderCurrentMode();
+      void loadSidebarLists();
+      return;
+    }
+
+    outgoingSection.classList.remove("mode-fade-in");
+    outgoingSection.classList.add("mode-fade-out");
+
+    modeSwitchTimer = window.setTimeout(() => {
+      outgoingSection.classList.remove("mode-fade-out");
+      outgoingSection.style.display = "none";
+
+      applyThemeUi();
+      syncModeSections();
+
+      incomingSection.style.display = "block";
+      incomingSection.classList.add("mode-fade-in");
+
+      void renderCurrentMode();
+      void loadSidebarLists();
+
+      window.requestAnimationFrame(() => {
+        incomingSection.classList.remove("mode-fade-in");
+      });
+    }, 300);
   }
 
   function getDramaImage(drama) {
@@ -207,7 +257,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const activeGenre = genreFilters[mode];
     const genres = getGenreTokens(drama.genre);
 
-    card.className = "main-recommendation";
+    card.className = "main-recommendation card-enter";
     card.innerHTML = `
       <img src="${getDramaImage(drama)}" alt="${escapeHtml(drama.title)}" class="main-img" loading="lazy" width="280" height="400">
       <div class="main-text">
@@ -226,6 +276,19 @@ document.addEventListener("DOMContentLoaded", function () {
     `;
 
     return card;
+  }
+
+  function animateRenderedCards(container) {
+    const cards = Array.from(
+      container.querySelectorAll(".main-recommendation.card-enter"),
+    );
+
+    window.requestAnimationFrame(() => {
+      cards.forEach((card, index) => {
+        card.style.transitionDelay = `${index * 70}ms`;
+        card.classList.remove("card-enter");
+      });
+    });
   }
 
   function attachGenreFilterHandler(container) {
@@ -305,6 +368,8 @@ document.addEventListener("DOMContentLoaded", function () {
       filteredItems.forEach((drama) => {
         container.appendChild(createDramaCard(drama, mode));
       });
+
+      animateRenderedCards(container);
 
       attachGenreFilterHandler(container);
     } catch (error) {
@@ -403,15 +468,12 @@ document.addEventListener("DOMContentLoaded", function () {
   themeToggle.addEventListener("click", function () {
     isCdramaMode = !isCdramaMode;
     localStorage.setItem("dramaTheme", isCdramaMode ? "cdrama" : "kdrama");
-    applyThemeUi();
     clearStatus();
-    void renderCurrentMode();
-    void loadSidebarLists();
+    fadeModeSwitch();
   });
 
   applyThemeUi();
-  attachGenreFilterHandler(kdramaContainer);
-  attachGenreFilterHandler(cdramaContainer);
+  syncModeSections();
   void renderCurrentMode();
   void loadSidebarLists();
   handleResize();

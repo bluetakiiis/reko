@@ -326,6 +326,26 @@ main.sidebar-open {
   margin-left: 300px;
 }
 
+#kdrama-rec,
+#cdrama-rec {
+  opacity: 1;
+  transform: translateY(0);
+  transition:
+    opacity 0.45s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: opacity;
+}
+
+.mode-fade-out {
+  opacity: 0;
+  transform: translateY(4px) scale(0.995);
+}
+
+.mode-fade-in {
+  opacity: 0;
+  transform: translateY(-4px) scale(0.995);
+}
+
 .recommendation-container {
   display: grid;
   grid-template-columns: 1fr;
@@ -341,7 +361,17 @@ main.sidebar-open {
   border-radius: 15px;
   overflow: hidden;
   box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-  transition: all 0.3s ease;
+  transition:
+    opacity 0.45s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.45s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 0.3s ease;
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.main-recommendation.card-enter {
+  opacity: 0;
+  transform: translateY(10px) scale(0.992);
 }
 
 .main-recommendation:hover {
