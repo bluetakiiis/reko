@@ -389,7 +389,13 @@ document.addEventListener("DOMContentLoaded", function () {
 
       if (kdramaList) {
         kdramaList.innerHTML = "";
-        data.kdramaSidebar.forEach((title) => {
+        const kItems = Array.isArray(data.kdramaSidebar)
+          ? [...data.kdramaSidebar].sort((a, b) =>
+              String(a).localeCompare(String(b)),
+            )
+          : [];
+
+        kItems.forEach((title) => {
           const li = document.createElement("li");
           li.textContent = title;
           kdramaList.appendChild(li);
@@ -398,7 +404,13 @@ document.addEventListener("DOMContentLoaded", function () {
 
       if (cdramaList) {
         cdramaList.innerHTML = "";
-        data.cdramaSidebar.forEach((title) => {
+        const cItems = Array.isArray(data.cdramaSidebar)
+          ? [...data.cdramaSidebar].sort((a, b) =>
+              String(a).localeCompare(String(b)),
+            )
+          : [];
+
+        cItems.forEach((title) => {
           const li = document.createElement("li");
           li.textContent = title;
           cdramaList.appendChild(li);
