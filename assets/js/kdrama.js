@@ -115,6 +115,16 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   function getGenreTokens(genreValue) {
+    if (Array.isArray(genreValue)) {
+      return genreValue
+        .map((g) =>
+          String(g || "")
+            .replace(/\s+/g, " ")
+            .trim(),
+        )
+        .filter(Boolean);
+    }
+
     return String(genreValue || "")
       .split("/")
       .flatMap((part) => part.split(/\s{2,}/))
