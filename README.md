@@ -1,47 +1,97 @@
 # Reko
 
-**Project Overview**
+Whimsical K-drama / C-drama recommendations with a small Express API and Firestore-backed content.
 
-- **Purpose:** A lightweight site for sharing K-drama and C-drama recommendations with a sidebar of personally watched titles and a main recommendation feed.
-- **Features:** Theme toggle (Kdrama / Cdrama), responsive layout, recommendation submission form (Formspree), and a small Node API that reads/writes Firestore.
+## Features
 
-**Quick Start**
+- Theme toggle for K-drama and C-drama views
+- Responsive recommendation cards and sidebar lists
+- Formspree-powered recommendation form
+- Firebase Anonymous Auth + server-verified admin puzzle unlock
 
-- **Run the API:** Run `npm start`.
-- **Open the site:** Visit `http://localhost:3000` after the server starts.
-- **Live site:** https://bluetakiiis.github.io/reko/
+## Quick Start
 
-**Project Structure**
+1. Install dependencies:
 
-- **Files:**
-  - [index.html](index.html) : main HTML page
-  - [server/index.js](server/index.js) : Express API that serves the app and proxies Firestore reads/writes
-  - [data/genres.json](data/genres.json) : genre pill palette data
-  - [assets/js/kdrama.js](assets/js/kdrama.js) : JavaScript that loads data, toggles theme, and handles form submission
-  - [assets/css/kdrama.css](assets/css/kdrama.css) : styles (also supports `.cdrama-theme` color variables)
-  - [assets/scss/kdrama.scss](assets/scss/kdrama.scss) : source SCSS for the main site styles
-  - [assets/scss/admin.scss](assets/scss/admin.scss) : source SCSS for the admin styles
+   ```bash
+   npm install
+   ```
 
-**How it works**
+2. Copy [.env.example](.env.example) to [.env.local](.env.local) and fill in your Firebase values.
+3. Start the server:
 
-- On load, `assets/js/kdrama.js` fetches `/api/dramas` and populates:
-  - the sidebar lists (`kdramaSidebar`, `cdramaSidebar`) and
-  - the main recommendation containers (`kdramaRecommendations`, `cdramaRecommendations`).
-- The theme toggle switches between K-drama and C-drama modes in the browser.
-- The recommendation modal posts to Formspree (see `action` on the form in [index.html](index.html)).
+   ```bash
+   npm start
+   ```
 
-**Editing recommendations**
+4. Open [http://localhost:3000](http://localhost:3000).
 
-- Update the recommendation docs in Firestore through the API. The UI expects these fields on each card:
-  - `title`, `image`, `imageMobile`, `description`, `genre`, `episodes`, `rating`, `link`
+## Environment
 
-**Customization**
+The server reads [.env.local](.env.local) first, then [.env](.env) if present.
+Never commit either file.
 
-- Change the theme colors by editing `:root` or `.cdrama-theme` variables in [assets/css/kdrama.css](assets/css/kdrama.css).
-- Change the Formspree endpoint in the `<form>` `action` attribute inside [index.html](index.html) to point to your form receiver.
+Required values:
 
-**Deploying**
+- `FIREBASE_API_KEY`
+- `FIREBASE_AUTH_DOMAIN`
+- `FIREBASE_PROJECT_ID`
+- `FIREBASE_STORAGE_BUCKET`
+- `FIREBASE_MESSAGING_SENDER_ID`
+- `FIREBASE_APP_ID`
+- `ADMIN_SESSION_SECRET`
 
-- GitHub Pages can host the frontend, but the API must be deployed separately at a public URL.
-- Replace `https://YOUR-API-DOMAIN-HERE` in [index.html](index.html) with your deployed API URL.
-- The frontend will use `http://localhost:3000` automatically on local machines.
+For admin unlocks, also provide Firebase Admin credentials with one of:
+
+- `GOOGLE_APPLICATION_CREDENTIALS` pointing to a service account JSON file
+- `FIREBASE_ADMIN_SERVICE_ACCOUNT_JSON` containing the service account JSON string
+
+Optional:
+
+- `CORS_ORIGIN` for local or deployed frontend origins
+- `ADMIN_SESSION_TTL_MS` to change the admin cookie lifetime
+
+## Admin Flow
+
+- The browser signs in anonymously with Firebase on load.
+- Solving the puzzle sends the Firebase ID token to the server.
+- The server verifies the token, checks the puzzle answer, and issues an HttpOnly session cookie.
+- `PUT /api/dramas` accepts writes only when that session cookie is present.
+
+## Project Files
+
+- [index.html](index.html): main HTML entry point
+- [server/index.js](server/index.js): Express API and Firestore access
+- [server/firebase-config.js](server/firebase-config.js): Firebase client config loader
+- [assets/js/kdrama.js](assets/js/kdrama.js): app UI, puzzle flow, and content rendering
+- [assets/js/firebase-auth.js](assets/js/firebase-auth.js): Firebase bootstrap and unlock helpers
+- [assets/js/script.js](assets/js/script.js): shared API helpers
+- [assets/css/kdrama.css](assets/css/kdrama.css): main styles
+- [assets/scss/kdrama.scss](assets/scss/kdrama.scss): SCSS source for the main styles
+- [assets/scss/admin.scss](assets/scss/admin.scss): SCSS source for admin styles
+- [data/genres.json](data/genres.json): genre pill data
+
+## How It Works
+
+- `assets/js/kdrama.js` fetches `/api/dramas` and renders the sidebar lists and main recommendation cards.
+- The theme toggle switches between K-drama and C-drama palettes in the browser.
+- The recommendation modal posts to Formspree through the form action in [index.html](index.html).
+
+## Editing Recommendations
+
+Update the Firestore documents through the API. Each card should include:
+
+- `title`
+- `image`
+- `imageMobile`
+- `description`
+- `genre`
+- `episodes`
+- `rating`
+- `link`
+
+## Deploying
+
+- GitHub Pages can host the frontend, but the API must run separately.
+- Replace `https://YOUR-API-DOMAIN-HERE` in [index.html](index.html) with your API URL.
+- The frontend uses `http://localhost:3000` automatically during local development.

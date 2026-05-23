@@ -9,6 +9,6 @@ node_modules/
 npm-debug.log*
 .cache/
 
-# npm install
-# node server.js
-# python -m http.server
+# Firebase admin service account keys
+*firebase-adminsdk*.json
+serviceAccountKey.json

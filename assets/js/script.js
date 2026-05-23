@@ -5,13 +5,25 @@ function apiUrl(path) {
 }
 
 async function apiJson(path, options = {}) {
+  const token = window.rekoFirebaseAuthState?.idToken || null;
+  const headers = new Headers(options.headers || {});
+
+  if (!headers.has("Accept")) {
+    headers.set("Accept", "application/json");
+  }
+
+  if (options.body !== undefined && !headers.has("Content-Type")) {
+    headers.set("Content-Type", "application/json");
+  }
+
+  if (token) {
+    headers.set("Authorization", `Bearer ${token}`);
+  }
+
   const response = await fetch(apiUrl(path), {
     ...options,
-    headers: {
-      Accept: "application/json",
-      "Content-Type": "application/json",
-      ...(options.headers || {}),
-    },
+    credentials: "include",
+    headers,
   });
 
   if (!response.ok) {

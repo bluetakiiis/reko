@@ -85,13 +85,21 @@
 
           <div id="recommend-modal" class="modal">
             <div class="modal-content">
+              <a
+                href="#"
+                class="recommend-close-btn"
+                id="close-btn"
+                aria-label="Close recommend modal"
+              >
+                <span class="material-symbols-outlined">close</span>
+              </a>
               <iframe
                 name="hidden_iframe"
                 id="hidden_iframe"
                 style="display: none"
               ></iframe>
-              <h3>❤️ Recommend a Drama!</h3>
-              <p>Tell me what to watch next:</p>
+              <h3 class="recommend-title">❤️ Recommend a Drama!</h3>
+              <p><em>Tell me what to watch next!</em></p>
               <form
                 id="recommend-form"
                 action="https://formspree.io/f/movwqyeb"
@@ -105,11 +113,6 @@
                 <div id="form-status" style="margin-top: 10px"></div>
                 <div class="form-actions">
                   <button type="submit">Send</button>
-                  <a href="#" class="close"
-                    ><span class="material-symbols-outlined" id="close-btn"
-                      >close</span
-                    ></a
-                  >
                 </div>
               </form>
               <p id="responseMsg" style="display: none; margin-top: 10px"></p>
@@ -288,6 +291,5 @@
 
     <script type="module" src="assets/js/script.js"></script>
     <script type="module" src="assets/js/kdrama.js"></script>
-    <script type="module" src="assets/js/admin.js"></script>
   </body>
 </html>
