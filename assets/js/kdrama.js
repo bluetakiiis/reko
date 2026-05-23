@@ -1,9 +1,12 @@
-document.addEventListener("DOMContentLoaded", function () {
+import { getAdminSession, logoutAdmin, unlockAdmin } from "./firebase-auth.js";
+
+function initializeKdramaApp() {
   const menuBtn = document.getElementById("menu-btn");
   const sidebar = document.getElementById("sidebar");
   const mainContent = document.querySelector("main");
   const themeToggle = document.getElementById("theme-toggle");
   const navbarTitle = document.querySelector(".navbar-title");
+  const recommendModal = document.getElementById("recommend-modal");
   const form = document.getElementById("recommend-form");
   const status = document.getElementById("form-status");
   const kdramaContainer = document.getElementById("kdrama-container");
@@ -12,7 +15,11 @@ document.addEventListener("DOMContentLoaded", function () {
   const searchInput = document.getElementById("search-input");
   const searchDropdown = document.getElementById("search-dropdown");
   const adminOverlay = document.getElementById("admin-overlay");
+  const adminKeyBtn = document.getElementById("admin-key-btn");
+  const adminExitBtn = document.getElementById("admin-exit-btn");
+  const puzzleClose = document.getElementById("puzzle-close");
   const sidebarAddBtn = document.getElementById("sidebar-add-btn");
+  const fabAddBtn = document.getElementById("fab-add");
 
   const genreFilters = {
     kdrama: null,
@@ -29,8 +36,11 @@ document.addEventListener("DOMContentLoaded", function () {
   let puzzleStep = 1;
   let puzzleStepSolved = { 1: false, 2: false, 3: false };
   let step1Selection = [];
+  let step2Selection = [];
+  let isUnlockingAdmin = false;
   const step1TargetSequence = ["😛", "😔", "🤏"];
   const step2TargetSequence = ["Romance", "Fantasy", "Comedy"];
+  const ADMIN_MODE_STORAGE_KEY = "reko-admin-mode-unlocked";
 
   const GENRE_PRIORITY = ["Romance", "Fantasy", "Comedy"];
   const GENRE_OTHER = [
@@ -75,6 +85,81 @@ document.addEventListener("DOMContentLoaded", function () {
   const persistDramasToServer = (...args) =>
     window.persistDramasToServer(...args);
   const saveDataToStorage = (...args) => window.saveDataToStorage(...args);
+
+  function setAdminModePersisted(isEnabled) {
+    try {
+      if (isEnabled) {
+        window.localStorage.setItem(ADMIN_MODE_STORAGE_KEY, "true");
+      } else {
+        window.localStorage.removeItem(ADMIN_MODE_STORAGE_KEY);
+      }
+    } catch (error) {}
+  }
+
+  function isAdminModePersisted() {
+    try {
+      return window.localStorage.getItem(ADMIN_MODE_STORAGE_KEY) === "true";
+    } catch (error) {
+      return false;
+    }
+  }
+
+  async function loadAdminSession() {
+    try {
+      const session = await getAdminSession();
+      return Boolean(session && session.ok);
+    } catch (error) {
+      return false;
+    }
+  }
+
+  async function completeAdminUnlock() {
+    if (isUnlockingAdmin) {
+      return false;
+    }
+
+    isUnlockingAdmin = true;
+
+    const phraseMsg = document.getElementById("phrase-msg");
+    const phraseBtn = document.getElementById("phrase-check-btn");
+
+    try {
+      if (phraseMsg) {
+        phraseMsg.className = "puzzle-msg";
+        phraseMsg.textContent = "Checking your puzzle answer...";
+      }
+      if (phraseBtn) {
+        phraseBtn.disabled = true;
+      }
+
+      await unlockAdmin({
+        step1Selection,
+        step2Selection,
+        phrase: phraseInput ? phraseInput.value.trim() : "",
+      });
+
+      if (phraseMsg) {
+        phraseMsg.textContent = "";
+      }
+
+      closePuzzle();
+      enterAdminMode({ celebrate: true });
+      return true;
+    } catch (error) {
+      if (phraseMsg) {
+        phraseMsg.className = "puzzle-msg err";
+        phraseMsg.textContent =
+          "The server did not accept that puzzle answer. Try again.";
+      }
+      return false;
+    } finally {
+      isUnlockingAdmin = false;
+      if (phraseBtn) {
+        phraseBtn.disabled = false;
+        phraseBtn.textContent = "Continue";
+      }
+    }
+  }
 
   function getCurrentMode() {
     return isCdramaMode ? "cdrama" : "kdrama";
@@ -1175,6 +1260,18 @@ document.addEventListener("DOMContentLoaded", function () {
     void renderCurrentMode({ showSkeletons: !dramasData });
   }
 
+  function toggleMode() {
+    isCdramaMode = !isCdramaMode;
+    try {
+      fadeModeSwitch();
+    } catch (e) {
+      applyThemeUi();
+      syncModeSections();
+      void renderCurrentMode();
+      void loadSidebarLists();
+    }
+  }
+
   if (searchInput) {
     searchInput.addEventListener("input", () => {
       void doSearch(searchInput.value);
@@ -1332,7 +1429,7 @@ document.addEventListener("DOMContentLoaded", function () {
       } else {
         if (msg) {
           msg.className = "puzzle-msg err";
-          msg.textContent = "Hmm, that sequence wasn't right. Resetting.";
+          msg.textContent = "you wouldn't know you obv wouldn't";
         }
         puzzleGrid.querySelectorAll(".puzzle-item").forEach((el) => {
           el.classList.add("wrong");
@@ -1390,6 +1487,7 @@ document.addEventListener("DOMContentLoaded", function () {
       // 4. Update the state or reject back cleanly on failure
       if (isCorrect) {
         puzzleStepSolved[2] = true;
+        step2Selection = currentSelection.slice();
         if (msg) {
           msg.className = "puzzle-msg ok";
           msg.textContent = "YASSS I'VE RECOGNIZED MY QUEEN😍";
@@ -1503,6 +1601,7 @@ document.addEventListener("DOMContentLoaded", function () {
     puzzleStep = 1;
     puzzleStepSolved = { 1: false, 2: false, 3: false };
     step1Selection = [];
+    step2Selection = [];
 
     const dz = document.getElementById("puzzle-drop-zone");
     const dp = document.getElementById("puzzle-drag-pool");
@@ -1549,6 +1648,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     adminOverlay.classList.add("active");
+    adminOverlay.style.display = "flex";
     document.body.style.overflow = "hidden";
   }
 
@@ -1558,14 +1658,14 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     adminOverlay.classList.remove("active");
+    adminOverlay.style.display = "none";
     document.body.style.overflow = "";
   }
 
   function advancePuzzle() {
     puzzleStep += 1;
     if (puzzleStep > 3) {
-      closePuzzle();
-      enterAdminMode({ celebrate: true });
+      void completeAdminUnlock();
       return;
     }
 
@@ -1575,21 +1675,45 @@ document.addEventListener("DOMContentLoaded", function () {
   function enterAdminMode(options = {}) {
     isAdminMode = true;
     document.body.classList.add("admin-mode");
+    setAdminModePersisted(true);
     if (options.celebrate) {
       playAdminCelebration();
     }
     void renderCurrentMode({ showSkeletons: false });
     void loadSidebarLists();
-    showToast("Admin mode activated ✨");
+    if (!options.silent) {
+      showToast("Admin mode activated ✨");
+    }
   }
 
   function exitAdminMode() {
+    try {
+      if (adminOverlay) {
+        adminOverlay.classList.remove("active");
+        adminOverlay.style.display = "none";
+      }
+      document.body.style.overflow = "";
+    } catch (e) {}
+
     isAdminMode = false;
     document.body.classList.remove("admin-mode");
+    setAdminModePersisted(false);
+
+    void logoutAdmin();
     closePuzzle();
     void renderCurrentMode({ showSkeletons: false });
     void loadSidebarLists();
-    showToast("Exited admin mode");
+
+    setTimeout(() => {
+      try {
+        if (adminOverlay) {
+          adminOverlay.classList.remove("active");
+          adminOverlay.style.display = "none";
+        }
+      } catch (e) {
+        /* ignore */
+      }
+    }, 60);
   }
 
   function playAdminCelebration() {
@@ -1625,38 +1749,6 @@ document.addEventListener("DOMContentLoaded", function () {
     }, 2400);
   }
 
-  window.rekoFrontEnd = {
-    clearStatus,
-    applyThemeUi,
-    syncModeSections,
-    renderMode,
-    renderCurrentMode,
-    loadSidebarLists,
-    showToast,
-    openPuzzle,
-    closePuzzle,
-    advancePuzzle,
-    enterAdminMode,
-    exitAdminMode,
-    playAdminCelebration,
-    addSidebarEntry,
-    addBlankCard,
-    updateSidebarEntry,
-    handleResize,
-    toggleMode: () => {
-      isCdramaMode = !isCdramaMode;
-      try {
-        fadeModeSwitch();
-      } catch (e) {
-        applyThemeUi();
-        syncModeSections();
-        void renderCurrentMode();
-        void loadSidebarLists();
-      }
-    },
-    getCurrentMode,
-  };
-
   menuBtn.addEventListener("click", function () {
     sidebar.classList.toggle("show");
     mainContent.classList.toggle("sidebar-open");
@@ -1676,6 +1768,48 @@ document.addEventListener("DOMContentLoaded", function () {
   });
 
   window.addEventListener("resize", handleResize);
+
+  if (adminKeyBtn) {
+    adminKeyBtn.addEventListener("click", () => {
+      if (document.body.classList.contains("admin-mode")) {
+        exitAdminMode();
+      } else {
+        openPuzzle();
+      }
+    });
+  }
+
+  if (adminExitBtn) {
+    adminExitBtn.addEventListener("click", () => {
+      exitAdminMode();
+    });
+  }
+
+  if (puzzleClose) {
+    puzzleClose.addEventListener("click", () => {
+      closePuzzle();
+    });
+  }
+
+  if (recommendModal) {
+    recommendModal.addEventListener("click", (event) => {
+      if (event.target === recommendModal) {
+        window.location.hash = "";
+      }
+    });
+  }
+
+  if (sidebarAddBtn) {
+    sidebarAddBtn.addEventListener("click", () => {
+      void addSidebarEntry();
+    });
+  }
+
+  if (fabAddBtn) {
+    fabAddBtn.addEventListener("click", () => {
+      void addBlankCard();
+    });
+  }
 
   if (form) {
     form.addEventListener("submit", async function (e) {
@@ -1708,12 +1842,28 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   themeToggle.addEventListener("click", function () {
-    window.rekoFrontEnd.toggleMode();
+    toggleMode();
   });
 
   applyThemeUi();
   syncModeSections();
+  void loadAdminSession().then((isAuthenticated) => {
+    if (isAuthenticated) {
+      enterAdminMode({ silent: true });
+      return;
+    }
+
+    if (isAdminModePersisted()) {
+      setAdminModePersisted(false);
+    }
+  });
   void renderCurrentMode();
   void loadSidebarLists();
   handleResize();
-});
+}
+
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", initializeKdramaApp);
+} else {
+  initializeKdramaApp();
+}

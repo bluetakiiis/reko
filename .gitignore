@@ -9,4 +9,7 @@ node_modules/
 npm-debug.log*
 .cache/
 
+# Firebase admin service account keys
+*firebase-adminsdk*.json
+serviceAccountKey.json
 reko-865ae-firebase-adminsdk-fbsvc-d38ae0d15e.json
