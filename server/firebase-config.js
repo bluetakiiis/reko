@@ -21,3 +21,4 @@ module.exports = {
     appId: process.env.FIREBASE_APP_ID || fallback.appId,
   },
 };
+ 
