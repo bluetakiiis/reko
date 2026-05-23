@@ -283,7 +283,7 @@
         window.location.hostname === "localhost" ||
         window.location.hostname === "127.0.0.1"
           ? "http://localhost:3000"
-          : window.REKO_API_BASE || "https://YOUR-API-DOMAIN-HERE";
+          : (window.REKO_API_BASE || window.location.origin);
     </script>
 
     <script type="module" src="assets/js/script.js"></script>

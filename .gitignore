@@ -9,6 +9,4 @@ node_modules/
 npm-debug.log*
 .cache/
 
-# npm install
-# node server.js
-# python -m http.server
+reko-865ae-firebase-adminsdk-fbsvc-d38ae0d15e.json

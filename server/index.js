@@ -122,9 +122,6 @@ app.get("*", (req, res) => {
   res.sendFile(path.join(rootDir, "index.html"));
 });
 
-// Initialize Firestore on module load. When running under Vercel the
-// serverless wrapper will import this module and handle requests; only
-// start a local HTTP listener when this file is executed directly.
 initFirestore().catch((error) => {
   console.error("Failed to initialize Firestore:", error);
   if (require.main === module) {
