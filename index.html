@@ -44,6 +44,7 @@
       rel="stylesheet"
     />
     <link rel="stylesheet" href="assets/css/kdrama.css" />
+    <link rel="stylesheet" href="assets/css/admin.css" />
     <link
       rel="stylesheet"
       href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200"
@@ -53,12 +54,25 @@
   <body>
     <nav class="navbar sticky-top bg-body-tertiary">
       <div class="container-fluid">
-        <a class="navbar-brand" href="#">
-          <span class="material-symbols-outlined" id="menu-btn">menu</span>
-        </a>
-        <h1 class="navbar-title">Rupika's Kdrama Reko</h1>
+        <div class="nav-left">
+          <a class="navbar-brand" href="#">
+            <span class="material-symbols-outlined" id="menu-btn">menu</span>
+          </a>
+          <h1 class="navbar-title">Rupika's Kdrama Reko</h1>
+        </div>
 
         <div class="navbar-brand right-icons">
+          <div class="search-wrapper" id="search-wrapper">
+            <span class="material-symbols-outlined search-icon">search</span>
+            <input
+              type="text"
+              class="search-input"
+              id="search-input"
+              placeholder="Search dramas..."
+              autocomplete="off"
+            />
+            <div class="search-dropdown" id="search-dropdown"></div>
+          </div>
           <a href="#recommend-modal" class="recommend-btn">
             <div class="right-icons">
               <div class="icon-wrapper">
@@ -101,6 +115,7 @@
               <p id="responseMsg" style="display: none; margin-top: 10px"></p>
             </div>
           </div>
+
           <div class="right-icons">
             <div class="icon-wrapper">
               <span class="material-symbols-outlined" id="theme-toggle"
@@ -108,34 +123,171 @@
               >
             </div>
           </div>
+
+          <div class="right-icons admin-key-btn" id="admin-key-btn">
+            <div class="icon-wrapper">
+              <span class="material-symbols-outlined">key</span>
+            </div>
+            <button class="admin-lock-btn" id="admin-exit-btn" type="button">
+            <span class="material-symbols-outlined admin-lock-icon">lock</span>
+          </button>
+          </div>
+          
+          <div class="right-icons" id="reload-data-wrap" style="display:none">
+            <div class="icon-wrapper">
+              <button id="reload-data-btn" class="reload-data-btn" title="Reload data from file" aria-label="Reload data from file">
+                <span class="material-symbols-outlined">sync</span>
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </nav>
 
     <section id="sidebar">
-      <h4>The Drama Scroll</h4>
-      <ol id="kdrama-list">
-        <!-- Kdrama sidebar list will be loaded here by JavaScript -->
-      </ol>
+      <div class="sidebar-header">
+        <h4>The Drama Scroll</h4>
+        <button class="sidebar-add-btn" id="sidebar-add-btn" type="button">
+          <span class="material-symbols-outlined sidebar-add-icon">add</span>
+          Add
+        </button>
+      </div>
+      <ol id="kdrama-list"></ol>
 
-      <ol id="cdrama-list" style="display: none">
-        <!-- Cdrama sidebar list will be loaded here by JavaScript -->
-      </ol>
+      <ol id="cdrama-list" style="display: none"></ol>
     </section>
     <main>
       <section id="kdrama-rec">
-        <div class="recommendation-container" id="kdrama-container">
-          <!-- Kdrama recommendations will be loaded here by JavaScript -->
-        </div>
+        <div class="recommendation-container" id="kdrama-container"></div>
       </section>
 
       <section id="cdrama-rec" style="display: none">
-        <div class="recommendation-container" id="cdrama-container">
-          <!-- Cdrama recommendations will be loaded here by JavaScript -->
-        </div>
+        <div class="recommendation-container" id="cdrama-container"></div>
       </section>
     </main>
 
-    <script src="assets/js/kdrama.js"></script>
+    <button class="fab-add" id="fab-add" type="button" aria-label="Add drama">
+      <span class="material-symbols-outlined">add</span>
+    </button>
+
+    <div id="admin-overlay">
+      <div class="admin-puzzle-wrap">
+        <button class="puzzle-close-btn" id="puzzle-close" type="button">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+        <div class="admin-puzzle-stars">✨🌸✨</div>
+        <div class="admin-puzzle-title">Secret Admin Mode</div>
+        <div class="admin-puzzle-subtitle">
+          Three tiny challenges to unlock editing ✦
+        </div>
+        <div class="puzzle-dots">
+          <div class="puzzle-dot" id="dot-0"></div>
+          <div class="puzzle-dot" id="dot-1"></div>
+          <div class="puzzle-dot" id="dot-2"></div>
+        </div>
+
+        <div class="puzzle-step active" id="step-1">
+          <p class="puzzle-step-title">
+            ✦ Step 1 of 3 —
+            <em>Pick the one that belongs to you!</em>
+          </p>
+          <div class="puzzle-grid" id="puzzle-grid">
+            <div class="puzzle-item" data-emoji="💅">💅</div>
+            <div class="puzzle-item" data-emoji="😛">😛</div>
+            <div class="puzzle-item" data-emoji="🤏">🤏</div>
+            <div class="puzzle-item" data-emoji="😔">😔</div>
+            <div class="puzzle-item" data-emoji="💕">💕</div>
+            <div class="puzzle-item" data-emoji="😍">😍</div>
+          </div>
+          <div class="puzzle-support" id="step1-support">
+            OHHHH YOOOOONNN HEEEEE!!!
+          </div>
+          <button class="puzzle-check-btn" id="step1-check" type="button">
+            Check
+          </button>
+          <div class="puzzle-msg" id="step1-msg"></div>
+        </div>
+
+        <div class="puzzle-step" id="step-2">
+          <p class="genre-puzzle-title">
+            ✦ Step 2 of 3 —
+            <em>Drag the correct genres into the drama box!</em>
+          </p>
+
+          <div class="puzzle-drop-zone" id="puzzle-drop-zone">
+            <span class="drop-placeholder">Drop attributes here...</span>
+          </div>
+
+          <div class="puzzle-drag-pool" id="puzzle-drag-pool">
+            <div class="drag-pill" draggable="true" data-genre="Romance">
+              Romance 💕
+            </div>
+            <div class="drag-pill" draggable="true" data-genre="Thriller">
+              Thriller 🔪
+            </div>
+            <div class="drag-pill" draggable="true" data-genre="Fantasy">
+              Fantasy ✨
+            </div>
+            <div class="drag-pill" draggable="true" data-genre="Medical">
+              Medical 🩺
+            </div>
+            <div class="drag-pill" draggable="true" data-genre="Comedy">
+              Comedy 😹
+            </div>
+            <div class="drag-pill" draggable="true" data-genre="Historical">
+              Historical 🏯
+            </div>
+          </div>
+
+          <button class="puzzle-check-btn" id="step2-check" type="button">
+            Check
+          </button>
+          <div class="puzzle-msg" id="step2-msg"></div>
+        </div>
+
+        <div class="puzzle-step" id="step-3">
+          <p class="phrase-label">
+            ✦ Step 3 of 3 — <em>Type the secret phrase to enter!</em>
+          </p>
+          
+          <div class="diamond-container">
+            <div class="diamond-box d-top">You got this fr! 💕</div>
+            
+            <div class="middle-row">
+              <div class="diamond-box d-left">So close now! 😌</div>
+              <div class="diamond-box d-right">Locked in queen! 🫶</div>
+            </div>
+
+            <div class="puzzle-input-wrapper">
+              <input
+                type="text"
+                class="phrase-input"
+                id="phrase-input"
+                placeholder="type here..."
+                autocomplete="off"
+              />
+            </div>
+          </div> 
+          
+          <button class="puzzle-check-btn" id="phrase-check-btn" type="button">
+            Confirm
+          </button>
+          <div class="puzzle-msg" id="phrase-msg"></div>
+        </div>
+      </div>
+
+    <div class="toast-container" id="toast-container"></div>
+
+    <script>
+      window.REKO_API_BASE =
+        window.location.hostname === "localhost" ||
+        window.location.hostname === "127.0.0.1"
+          ? "http://localhost:3000"
+          : window.REKO_API_BASE || "https://YOUR-API-DOMAIN-HERE";
+    </script>
+
+    <script type="module" src="assets/js/script.js"></script>
+    <script type="module" src="assets/js/kdrama.js"></script>
+    <script type="module" src="assets/js/admin.js"></script>
   </body>
 </html>

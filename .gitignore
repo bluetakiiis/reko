@@ -1,2 +1,14 @@
 .vscode/
 .vscode/settings.json
+node_modules/
+
+# Environment and system files
+.env
+.env.local
+.DS_Store
+npm-debug.log*
+.cache/
+
+# npm install
+# node server.js
+# python -m http.server

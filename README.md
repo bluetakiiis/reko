@@ -2,36 +2,37 @@
 
 **Project Overview**
 
-- **Purpose:** A lightweight static site for sharing K-drama and C-drama recommendations with a sidebar of personally watched titles and a main recommendation feed.
-- **Features:** Theme toggle (Kdrama / Cdrama), responsive layout, recommendation submission form (Formspree), and content loaded from a JSON file.
+- **Purpose:** A lightweight site for sharing K-drama and C-drama recommendations with a sidebar of personally watched titles and a main recommendation feed.
+- **Features:** Theme toggle (Kdrama / Cdrama), responsive layout, recommendation submission form (Formspree), and a small Node API that reads/writes Firestore.
 
 **Quick Start**
 
-- **View locally:** Open [index.html](index.html) in your browser.
-- **Edit content:** Update recommendations and sidebar lists in [data/dramas.json](data/dramas.json).
+- **Run the API:** Run `npm start`.
+- **Open the site:** Visit `http://localhost:3000` after the server starts.
 - **Live site:** https://bluetakiiis.github.io/reko/
 
 **Project Structure**
 
 - **Files:**
   - [index.html](index.html) : main HTML page
-  - [data/dramas.json](data/dramas.json) : data source for sidebar lists and recommendation cards
+  - [server/index.js](server/index.js) : Express API that serves the app and proxies Firestore reads/writes
   - [data/genres.json](data/genres.json) : genre pill palette data
   - [assets/js/kdrama.js](assets/js/kdrama.js) : JavaScript that loads data, toggles theme, and handles form submission
   - [assets/css/kdrama.css](assets/css/kdrama.css) : styles (also supports `.cdrama-theme` color variables)
-  - [assets/scss/kdrama.scss](assets/scss/kdrama.scss) : source SCSS (if you want to regenerate CSS)
+  - [assets/scss/kdrama.scss](assets/scss/kdrama.scss) : source SCSS for the main site styles
+  - [assets/scss/admin.scss](assets/scss/admin.scss) : source SCSS for the admin styles
 
 **How it works**
 
-- On load, `assets/js/kdrama.js` fetches `data/dramas.json` and populates:
+- On load, `assets/js/kdrama.js` fetches `/api/dramas` and populates:
   - the sidebar lists (`kdramaSidebar`, `cdramaSidebar`) and
   - the main recommendation containers (`kdramaRecommendations`, `cdramaRecommendations`).
-- The theme toggle switches between K-drama and C-drama modes and saves the choice to `localStorage`.
+- The theme toggle switches between K-drama and C-drama modes in the browser.
 - The recommendation modal posts to Formspree (see `action` on the form in [index.html](index.html)).
 
 **Editing recommendations**
 
-- Add or update entries in `data/dramas.json` under `kdramaRecommendations` or `cdramaRecommendations` using the existing objects as examples. Key fields used by the UI:
+- Update the recommendation docs in Firestore through the API. The UI expects these fields on each card:
   - `title`, `image`, `imageMobile`, `description`, `genre`, `episodes`, `rating`, `link`
 
 **Customization**
@@ -41,4 +42,6 @@
 
 **Deploying**
 
-- This is a static site and can be deployed to GitHub Pages by pushing the repository to `username.github.io`.
+- GitHub Pages can host the frontend, but the API must be deployed separately at a public URL.
+- Replace `https://YOUR-API-DOMAIN-HERE` in [index.html](index.html) with your deployed API URL.
+- The frontend will use `http://localhost:3000` automatically on local machines.
