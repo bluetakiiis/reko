@@ -411,13 +411,17 @@ app.get("*", (req, res) => {
   res.sendFile(path.join(rootDir, "index.html"));
 });
 
-initFirestore()
-  .then(() => {
-    app.listen(port, () => {
-      console.log(`Reko server running at http://localhost:${port}`);
-    });
-  })
-  .catch((error) => {
-    console.error("Failed to initialize Firestore:", error);
+initFirestore().catch((error) => {
+  console.error("Failed to initialize Firestore:", error);
+  if (require.main === module) {
     process.exit(1);
+  }
+});
+
+if (require.main === module) {
+  app.listen(port, () => {
+    console.log(`Reko server running at http://localhost:${port}`);
   });
+}
+
+module.exports = app;
