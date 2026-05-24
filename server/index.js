@@ -189,13 +189,23 @@ async function initFirebaseAdmin() {
       return null;
     }
 
+    console.log("Initializing Firebase Admin SDK...");
     admin.initializeApp({ credential });
     firebaseAdminAuth = admin.auth();
+    console.log("Firebase Admin SDK initialized.");
     return firebaseAdminAuth;
   } catch (error) {
     console.error("Failed to initialize Firebase Admin SDK:", error);
     return null;
   }
+}
+
+function withTimeout(promise, ms) {
+  let timer;
+  const timeout = new Promise((_, reject) => {
+    timer = setTimeout(() => reject(new Error("Operation timed out")), ms);
+  });
+  return Promise.race([promise.finally(() => clearTimeout(timer)), timeout]);
 }
 
 async function verifyFirebaseBearerToken(req) {
@@ -285,8 +295,11 @@ async function readDoc(collectionName, documentName, fieldName) {
   if (!db) {
     throw new Error("Firestore is not initialized");
   }
-
-  const snapshot = await db.collection(collectionName).doc(documentName).get();
+  // guard the Firestore read with a short timeout to avoid long serverless timeouts
+  const snapshot = await withTimeout(
+    db.collection(collectionName).doc(documentName).get(),
+    Number(process.env.FIRESTORE_OP_TIMEOUT_MS || 10000),
+  );
   const data = snapshot.exists ? snapshot.data() || {} : {};
   return Array.isArray(data[fieldName]) ? data[fieldName] : [];
 }
@@ -296,12 +309,13 @@ async function writeDoc(collectionName, documentName, fieldName, value) {
     throw new Error("Firestore is not initialized");
   }
 
-  await db
-    .collection(collectionName)
-    .doc(documentName)
-    .set({
-      [fieldName]: value,
-    });
+  await withTimeout(
+    db
+      .collection(collectionName)
+      .doc(documentName)
+      .set({ [fieldName]: value }),
+    Number(process.env.FIRESTORE_OP_TIMEOUT_MS || 10000),
+  );
 }
 
 app.get("/api/firebase-config", (req, res) => {
