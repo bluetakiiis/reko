@@ -228,6 +228,37 @@ function requireAdminSession(req, res, next) {
   next();
 }
 
+app.use(express.json({ limit: "2mb" }));
+
+app.use((req, res, next) => {
+  const rawOrigins = process.env.CORS_ORIGIN || "http://localhost:3000";
+  const allowedOrigins = rawOrigins
+    .split(",")
+    .map((s) => String(s || "").trim())
+    .filter(Boolean);
+
+  const requestOrigin = req.headers.origin;
+
+  if (allowedOrigins.includes("*")) {
+    res.setHeader("Access-Control-Allow-Origin", "*");
+  } else if (requestOrigin && allowedOrigins.includes(requestOrigin)) {
+    res.setHeader("Access-Control-Allow-Origin", requestOrigin);
+  } else {
+    res.setHeader("Access-Control-Allow-Origin", "null");
+  }
+
+  res.setHeader("Access-Control-Allow-Methods", "GET,PUT,POST,OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
+  res.setHeader("Access-Control-Allow-Credentials", "true");
+
+  if (req.method === "OPTIONS") {
+    res.sendStatus(204);
+    return;
+  }
+
+  next();
+});
+
 app.use(express.static(rootDir));
 
 async function initFirestore() {
@@ -266,9 +297,12 @@ async function writeDoc(collectionName, documentName, fieldName, value) {
     throw new Error("Firestore is not initialized");
   }
 
-  await db.collection(collectionName).doc(documentName).set({
-    [fieldName]: value,
-  });
+  await db
+    .collection(collectionName)
+    .doc(documentName)
+    .set({
+      [fieldName]: value,
+    });
 }
 
 app.get("/api/firebase-config", (req, res) => {
