@@ -264,7 +264,6 @@ app.use(express.static(rootDir));
 async function initFirestore() {
   if (db) return db;
 
-  // Initialize Firebase Admin and attach Firestore instance
   const auth = await initFirebaseAdmin();
   if (!auth) {
     console.warn(
