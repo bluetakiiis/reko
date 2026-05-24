@@ -2,7 +2,6 @@ const express = require("express");
 const crypto = require("crypto");
 const fs = require("fs");
 const path = require("path");
-const admin = require("firebase-admin");
 const { firebaseConfig } = require("./firebase-config.js");
 
 const app = express();
@@ -14,6 +13,7 @@ let doc;
 let getDoc;
 let setDoc;
 let firebaseAdminAuth;
+let admin;
 const ADMIN_SESSION_SECRET = process.env.ADMIN_SESSION_SECRET || "";
 
 const ADMIN_SESSION_COOKIE = "reko_admin_session";
@@ -144,16 +144,17 @@ function validatePuzzlePayload(payload = {}) {
 }
 
 function loadAdminCredential() {
+  const firebaseAdmin = getFirebaseAdmin();
   const serviceAccountJson = process.env.FIREBASE_ADMIN_SERVICE_ACCOUNT_JSON;
   const serviceAccountPath = process.env.GOOGLE_APPLICATION_CREDENTIALS;
 
   if (serviceAccountJson) {
-    return admin.credential.cert(JSON.parse(serviceAccountJson));
+    return firebaseAdmin.credential.cert(JSON.parse(serviceAccountJson));
   }
 
   if (serviceAccountPath) {
     if (fs.existsSync(serviceAccountPath)) {
-      return admin.credential.cert(
+      return firebaseAdmin.credential.cert(
         JSON.parse(fs.readFileSync(serviceAccountPath, "utf8")),
       );
     }
@@ -161,7 +162,7 @@ function loadAdminCredential() {
     // Try path relative to repository root (helpful for relative filenames in .env)
     const relativePath = path.join(rootDir, serviceAccountPath);
     if (fs.existsSync(relativePath)) {
-      return admin.credential.cert(
+      return firebaseAdmin.credential.cert(
         JSON.parse(fs.readFileSync(relativePath, "utf8")),
       );
     }
@@ -170,13 +171,23 @@ function loadAdminCredential() {
   return null;
 }
 
+function getFirebaseAdmin() {
+  if (!admin) {
+    admin = require("firebase-admin");
+  }
+
+  return admin;
+}
+
 async function initFirebaseAdmin() {
+  const firebaseAdmin = getFirebaseAdmin();
+
   if (firebaseAdminAuth) {
     return firebaseAdminAuth;
   }
 
-  if (admin.apps.length > 0) {
-    firebaseAdminAuth = admin.auth();
+  if (firebaseAdmin.apps.length > 0) {
+    firebaseAdminAuth = firebaseAdmin.auth();
     return firebaseAdminAuth;
   }
 
@@ -190,8 +201,8 @@ async function initFirebaseAdmin() {
     }
 
     console.log("Initializing Firebase Admin SDK...");
-    admin.initializeApp({ credential });
-    firebaseAdminAuth = admin.auth();
+    firebaseAdmin.initializeApp({ credential });
+    firebaseAdminAuth = firebaseAdmin.auth();
     console.log("Firebase Admin SDK initialized.");
     return firebaseAdminAuth;
   } catch (error) {
@@ -283,7 +294,7 @@ async function initFirestore() {
   }
 
   try {
-    db = admin.firestore();
+    db = getFirebaseAdmin().firestore();
     return db;
   } catch (error) {
     console.error("Failed to initialize Firestore via firebase-admin:", error);
