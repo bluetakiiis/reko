@@ -47,8 +47,10 @@ module.exports = {
     apiKey: getConfigValue("FIREBASE_API_KEY"),
     authDomain: getConfigValue("FIREBASE_AUTH_DOMAIN"),
     projectId: getConfigValue("FIREBASE_PROJECT_ID"),
-    storageBucket: getConfigValue("FIREBASE_STORAGE_BUCKET"),
-    messagingSenderId: getConfigValue("FIREBASE_MESSAGING_SENDER_ID"),
+    storageBucket:
+      process.env.FIREBASE_STORAGE_BUCKET || fallback.storageBucket,
+    messagingSenderId:
+      process.env.FIREBASE_MESSAGING_SENDER_ID || fallback.messagingSenderId,
     appId: getConfigValue("FIREBASE_APP_ID"),
   },
 };
