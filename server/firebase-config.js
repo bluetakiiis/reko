@@ -17,8 +17,6 @@ const fallback = {
   apiKey: "AIzaSyBRvfZ3TslTWMtzYAINey481eRcQEyxbjU",
   authDomain: "reko-865ae.firebaseapp.com",
   projectId: "reko-865ae",
-  storageBucket: "reko-865ae.firebasestorage.app",
-  messagingSenderId: "34431129385",
   appId: "1:34431129385:web:64c03a78ea1240be1f4938",
 };
 
@@ -47,10 +45,6 @@ module.exports = {
     apiKey: getConfigValue("FIREBASE_API_KEY"),
     authDomain: getConfigValue("FIREBASE_AUTH_DOMAIN"),
     projectId: getConfigValue("FIREBASE_PROJECT_ID"),
-    storageBucket:
-      process.env.FIREBASE_STORAGE_BUCKET || fallback.storageBucket,
-    messagingSenderId:
-      process.env.FIREBASE_MESSAGING_SENDER_ID || fallback.messagingSenderId,
     appId: getConfigValue("FIREBASE_APP_ID"),
   },
 };
