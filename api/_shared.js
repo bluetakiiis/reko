@@ -53,7 +53,9 @@ function getCookieValue(cookieHeader, name) {
 
 function signSessionToken(payload) {
   if (!ADMIN_SESSION_SECRET) {
-    throw new Error("Missing required environment variable: ADMIN_SESSION_SECRET");
+    throw new Error(
+      "Missing required environment variable: ADMIN_SESSION_SECRET",
+    );
   }
 
   const body = Buffer.from(JSON.stringify(payload)).toString("base64url");
@@ -82,7 +84,10 @@ function verifySessionToken(token) {
 
   if (
     signature.length !== expectedSignature.length ||
-    !crypto.timingSafeEqual(Buffer.from(signature), Buffer.from(expectedSignature))
+    !crypto.timingSafeEqual(
+      Buffer.from(signature),
+      Buffer.from(expectedSignature),
+    )
   ) {
     return null;
   }
@@ -128,8 +133,12 @@ function validatePuzzlePayload(payload = {}) {
   return (
     step1Selection.length === STEP1_TARGET_SEQUENCE.length &&
     step2Selection.length === STEP2_TARGET_SEQUENCE.length &&
-    step1Selection.every((value, index) => value === STEP1_TARGET_SEQUENCE[index]) &&
-    step2Selection.every((value, index) => value === STEP2_TARGET_SEQUENCE[index]) &&
+    step1Selection.every(
+      (value, index) => value === STEP1_TARGET_SEQUENCE[index],
+    ) &&
+    step2Selection.every(
+      (value, index) => value === STEP2_TARGET_SEQUENCE[index],
+    ) &&
     phrase === PUZZLE_PHRASE
   );
 }
@@ -252,7 +261,10 @@ async function writeDoc(collectionName, documentName, fieldName, value) {
   }
 
   await withTimeout(
-    db.collection(collectionName).doc(documentName).set({ [fieldName]: value }),
+    db
+      .collection(collectionName)
+      .doc(documentName)
+      .set({ [fieldName]: value }),
     Number(process.env.FIRESTORE_OP_TIMEOUT_MS || 10000),
   );
 }

@@ -2,6 +2,8 @@
 
 Whimsical K-drama / C-drama recommendations with a small Express API and Firestore-backed content.
 
+**Live Site**: https://reko-sable.vercel.app/#
+
 ## Features
 
 - Theme toggle for K-drama and C-drama views

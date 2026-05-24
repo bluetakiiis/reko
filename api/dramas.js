@@ -19,7 +19,10 @@ async function ensureFirestore() {
       Number(process.env.FIRESTORE_INIT_TIMEOUT_MS || 10000),
     );
   } catch (error) {
-    console.error("Firestore init error:", error && error.message ? error.message : error);
+    console.error(
+      "Firestore init error:",
+      error && error.message ? error.message : error,
+    );
   }
 }
 
@@ -33,7 +36,10 @@ module.exports = async (req, res) => {
   if (req.method === "GET") {
     await ensureFirestore();
 
-    if (!process.env.FIREBASE_ADMIN_SERVICE_ACCOUNT_JSON && !process.env.GOOGLE_APPLICATION_CREDENTIALS) {
+    if (
+      !process.env.FIREBASE_ADMIN_SERVICE_ACCOUNT_JSON &&
+      !process.env.GOOGLE_APPLICATION_CREDENTIALS
+    ) {
       json(res, 503, { error: "Firestore is unavailable." });
       return;
     }
@@ -76,7 +82,10 @@ module.exports = async (req, res) => {
 
     await ensureFirestore();
 
-    if (!process.env.FIREBASE_ADMIN_SERVICE_ACCOUNT_JSON && !process.env.GOOGLE_APPLICATION_CREDENTIALS) {
+    if (
+      !process.env.FIREBASE_ADMIN_SERVICE_ACCOUNT_JSON &&
+      !process.env.GOOGLE_APPLICATION_CREDENTIALS
+    ) {
       json(res, 503, { error: "Firestore is unavailable." });
       return;
     }
