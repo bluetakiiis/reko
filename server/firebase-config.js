@@ -37,17 +37,18 @@ function getConfigValue(key) {
     return requiredEnv(key);
   }
 
-  return process.env[key] || fallback[key.replace(/FIREBASE_/, '').toLowerCase()];
+  return (
+    process.env[key] || fallback[key.replace(/FIREBASE_/, "").toLowerCase()]
+  );
 }
 
 module.exports = {
   firebaseConfig: {
-    apiKey: process.env.FIREBASE_API_KEY || fallback.apiKey,
-    authDomain: process.env.FIREBASE_AUTH_DOMAIN || fallback.authDomain,
-    projectId: process.env.FIREBASE_PROJECT_ID || fallback.projectId,
-    storageBucket: process.env.FIREBASE_STORAGE_BUCKET || fallback.storageBucket,
-    messagingSenderId: process.env.FIREBASE_MESSAGING_SENDER_ID || fallback.messagingSenderId,
-    appId: process.env.FIREBASE_APP_ID || fallback.appId,
+    apiKey: getConfigValue("FIREBASE_API_KEY"),
+    authDomain: getConfigValue("FIREBASE_AUTH_DOMAIN"),
+    projectId: getConfigValue("FIREBASE_PROJECT_ID"),
+    storageBucket: getConfigValue("FIREBASE_STORAGE_BUCKET"),
+    messagingSenderId: getConfigValue("FIREBASE_MESSAGING_SENDER_ID"),
+    appId: getConfigValue("FIREBASE_APP_ID"),
   },
 };
- 
