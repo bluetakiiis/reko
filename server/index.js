@@ -322,7 +322,13 @@ app.get("/api/firebase-config", (req, res) => {
   res.json(firebaseConfig);
 });
 
-app.get("/api/health", (req, res) => {
+app.get("/api/health", async (req, res) => {
+  try {
+    await withTimeout(initFirestore(), Number(process.env.FIRESTORE_INIT_TIMEOUT_MS || 10000));
+  } catch (err) {
+    console.error("/api/health: initFirestore error:", err && err.message ? err.message : err);
+  }
+
   res.json({ ok: true, firestoreReady: Boolean(db) });
 });
 
@@ -390,8 +396,14 @@ app.post("/api/admin/logout", (req, res) => {
 });
 
 app.get("/api/dramas", async (req, res) => {
+  try {
+    await withTimeout(initFirestore(), Number(process.env.FIRESTORE_INIT_TIMEOUT_MS || 10000));
+  } catch (err) {
+    console.error("/api/dramas: initFirestore error:", err && err.message ? err.message : err);
+  }
+
   if (!db) {
-    res.status(503).json({ error: "Firestore is still starting." });
+    res.status(503).json({ error: "Firestore is still starting or unavailable." });
     return;
   }
 
@@ -421,8 +433,14 @@ app.get("/api/dramas", async (req, res) => {
 });
 
 app.put("/api/dramas", requireAdminSession, async (req, res) => {
+  try {
+    await withTimeout(initFirestore(), Number(process.env.FIRESTORE_INIT_TIMEOUT_MS || 10000));
+  } catch (err) {
+    console.error("/api/dramas PUT: initFirestore error:", err && err.message ? err.message : err);
+  }
+
   if (!db) {
-    res.status(503).json({ error: "Firestore is still starting." });
+    res.status(503).json({ error: "Firestore is still starting or unavailable." });
     return;
   }
 
@@ -457,13 +475,6 @@ app.put("/api/dramas", requireAdminSession, async (req, res) => {
 
 app.get("*", (req, res) => {
   res.sendFile(path.join(rootDir, "index.html"));
-});
-
-initFirestore().catch((error) => {
-  console.error("Failed to initialize Firestore:", error);
-  if (require.main === module) {
-    process.exit(1);
-  }
 });
 
 if (require.main === module) {
