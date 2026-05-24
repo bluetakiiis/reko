@@ -219,7 +219,6 @@ function requireAdminSession(req, res, next) {
   const session = verifySessionToken(
     getCookieValue(req.headers.cookie || "", ADMIN_SESSION_COOKIE),
   );
-
   if (!session) {
     res.status(401).json({ error: "Admin session required." });
     return;
@@ -229,43 +228,45 @@ function requireAdminSession(req, res, next) {
   next();
 }
 
-app.use(express.json({ limit: "2mb" }));
-app.use((req, res, next) => {
-  res.setHeader(
-    "Access-Control-Allow-Origin",
-    process.env.CORS_ORIGIN || "http://localhost:3000",
-  );
-  res.setHeader("Access-Control-Allow-Methods", "GET,PUT,POST,OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
-  res.setHeader("Access-Control-Allow-Credentials", "true");
-
-  if (req.method === "OPTIONS") {
-    res.sendStatus(204);
-    return;
-  }
-
-  next();
-});
-
 app.use(express.static(rootDir));
 
 async function initFirestore() {
-  const { initializeApp } = await import("firebase/app");
-  ({ doc, getDoc, setDoc } = await import("firebase/firestore"));
+  if (db) return db;
 
-  const firebaseApp = initializeApp(firebaseConfig, "server-app");
-  const { getFirestore } = await import("firebase/firestore");
-  db = getFirestore(firebaseApp);
+  // Initialize Firebase Admin and attach Firestore instance
+  const auth = await initFirebaseAdmin();
+  if (!auth) {
+    console.warn(
+      "Firestore is not available because Firebase Admin SDK isn't configured.",
+    );
+    return null;
+  }
+
+  try {
+    db = admin.firestore();
+    return db;
+  } catch (error) {
+    console.error("Failed to initialize Firestore via firebase-admin:", error);
+    return null;
+  }
 }
 
 async function readDoc(collectionName, documentName, fieldName) {
-  const snapshot = await getDoc(doc(db, collectionName, documentName));
-  const data = snapshot.exists() ? snapshot.data() || {} : {};
+  if (!db) {
+    throw new Error("Firestore is not initialized");
+  }
+
+  const snapshot = await db.collection(collectionName).doc(documentName).get();
+  const data = snapshot.exists ? snapshot.data() || {} : {};
   return Array.isArray(data[fieldName]) ? data[fieldName] : [];
 }
 
 async function writeDoc(collectionName, documentName, fieldName, value) {
-  await setDoc(doc(db, collectionName, documentName), {
+  if (!db) {
+    throw new Error("Firestore is not initialized");
+  }
+
+  await db.collection(collectionName).doc(documentName).set({
     [fieldName]: value,
   });
 }
